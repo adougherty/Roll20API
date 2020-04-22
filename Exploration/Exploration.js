@@ -1,8 +1,10 @@
+// TODO: Support !explore 1d8
+
 var EXPLORATION = EXPLORATION || (function() {
     'use strict';
 
-    var version = '0.1.1',
-        lastUpdate = '2020-04-07',
+    var version = '0.1.2',
+        lastUpdate = '2020-04-22',
         Exploration,
         store,
 
@@ -80,7 +82,14 @@ var EXPLORATION = EXPLORATION || (function() {
             })[0];
 
             attr.set('current', parseInt(attr.get('current')) + quantity);
-            sendChat('Explore', 'Added ' + quantity + 'd' + dice + ' to explorer pool')
+            sendChat('',
+                '<div style="float:right; width:100%; border:1px solid #000000; border-radius: 5px; margin-bottom:5px">'
+                + '<div style="background-color:#0000FF;color:#FFFFFF;font-weight:bold;text-align:center; border-radius-top-left:4px; border-radius-top-right:4px">Explore</div>'
+                + `<div style="padding: 0px 5px 5px 5px">Added ${quantity}d${dice} to explorer pool`
+                + '</div>'
+                + '<div style="clear:both"></div>'
+            )
+            //sendChat('Explore', 'Added ' + quantity + 'd' + dice + ' to explorer pool')
 
             return true;
         },
@@ -148,6 +157,20 @@ var EXPLORATION = EXPLORATION || (function() {
             sendChat('Explore', '!rtm saltmarsh-costal-encounters-0-4 Explore')
         },
 
+        showDice = function() {
+            let r = '/w gm &{template:default} ';
+            ['4', '6', '8', '10', '12'].forEach(function(val){
+                let obj = findObjs({
+                    type: 'attribute',
+                    name: 'd'+val,
+                    characterid: store.id
+                })[0];
+                let current = obj.get('current');
+                r += `{{d${val}=${current}}} `;
+            });
+            sendChat('Explore', r);
+        },
+
         HandleInput = function(msg_orig) {
             var msg = _.clone(msg_orig),
                 args,
@@ -160,7 +183,10 @@ var EXPLORATION = EXPLORATION || (function() {
             args = msg.content.split(/\s+/);
             switch (args[0]) {
                 case '!explore':
-                    if (!Number.isInteger(parseInt(args[1])) || !Number.isInteger(parseInt(args[2]))) {
+                    if (args[1] == 'show') {
+                        showDice();
+                        return;
+                    } else if (!Number.isInteger(parseInt(args[1])) || !Number.isInteger(parseInt(args[2]))) {
                         sendChat('Explore', 'Usage: !explore quantity dice');
                         return false;
                     }
