@@ -1,17 +1,18 @@
 /*
- * TODO: Needs to work with monsters (they don't trigger on name=hp)
  * TODO: Let gm choose status icons to set for various conditions
  */
 var MASSIVEDAMAGE = MASSIVEDAMAGE || (function() {
     'use strict';
-
-    var version = '0.1.0',
+    
+    var version = '0.1.1',
         lastUpdate = '2020-04-17',
         MassiveDamage,
 
         HandleGraphic = function(obj, prev) {
             let characterid = obj.get('represents');
             let character = getObj('character', characterid);
+            if (!character)
+                return;
             let pc = (character.get('controlledby').length > 0) ? true : false;
 
             let attr = null;
@@ -34,10 +35,17 @@ var MASSIVEDAMAGE = MASSIVEDAMAGE || (function() {
                 prev_hp = prev['bar1_value']
                 max_hp = prev['bar1_max']
             }
+            
+            if (!max_hp || !prev_hp || !cur_hp)
+                return;
+            
+            log("Prev HP: " + prev_hp);
+            log("Cur_HP: " + cur_hp);
+            log("Max_HP: " + max_hp);
 
             if (prev_hp - cur_hp < max_hp/2)
                 return;
-
+                
             let mod = findObjs({
                 type: 'attribute',
                 name: 'constitution_save_bonus',
@@ -82,7 +90,7 @@ var MASSIVEDAMAGE = MASSIVEDAMAGE || (function() {
             } else {
                 r += '<div>Constitution save passed!';
             }
-
+            
             let character_name = character.get('name');
             r = `<div style="font-weight:bold">${character_name}</div>` + r;
             if (character.get('controlledby')) {
@@ -90,20 +98,20 @@ var MASSIVEDAMAGE = MASSIVEDAMAGE || (function() {
             }
             sendChat('Massive Damage', `/w gm ${r}`, null, {noarchive:true});
         },
-
+        
         RegisterEventHandlers = function() {
             on('change:token', HandleGraphic);
         };
-
-
-    return {
-        RegisterEventHandlers: RegisterEventHandlers
-    };
+        
+        
+        return {
+          RegisterEventHandlers: RegisterEventHandlers
+        };
 }());
 
 on("ready", function() {
     'use strict'
-
+    
     MASSIVEDAMAGE.RegisterEventHandlers();
     log('MassiveDamage started...')
 })
